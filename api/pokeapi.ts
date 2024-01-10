@@ -1,6 +1,8 @@
 export interface Pokemon {
   name: string;
   url: string;
+  id: number;
+  image: string;
 }
 
 export const getPokemon = async (limit = 150): Promise<Pokemon[]> => {
