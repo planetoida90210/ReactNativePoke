@@ -8,10 +8,8 @@ export interface Pokemon {
   stats?: any;
 }
 
-export const getPokemon = async (limit = 150): Promise<Pokemon[]> => {
-  const response = await fetch(
-    `https://pokeapi.co/api/v2/pokemon?limit=${limit}`
-  );
+export const getPokemon = async (): Promise<Pokemon[]> => {
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
   const data = await response.json();
   return data.results.map((item: Pokemon, index: number) => ({
     ...item,

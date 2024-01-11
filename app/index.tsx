@@ -5,8 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { Pokemon, getPokemon } from '@/api/pokeapi';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,26 +16,28 @@ import { Ionicons } from '@expo/vector-icons';
 const Page = () => {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const result = await getPokemon();
-      setPokemon(result);
-    };
-    load();
-  }, []);
+  const pokemonQuery = useQuery({
+    queryKey: ['pokemon'],
+    queryFn: getPokemon,
+  });
+
   return (
     <ScrollView>
-      {pokemon.map((p) => (
-        <Link href={`/(pokemon)/${p.id}`} key={p.id} asChild>
-          <TouchableOpacity>
-            <View style={styles.item}>
-              <Image source={{ uri: p.image }} style={styles.preview} />
-              <Text style={styles.itemText}>{p.name}</Text>
-              <Ionicons name="chevron-forward" size={24} />
-            </View>
-          </TouchableOpacity>
-        </Link>
-      ))}
+      {pokemonQuery.isLoading && (
+        <ActivityIndicator style={{ marginTop: 30 }} />
+      )}
+      {pokemonQuery.data &&
+        pokemonQuery.data.map((p) => (
+          <Link href={`/(pokemon)/${p.id}`} key={p.id} asChild>
+            <TouchableOpacity>
+              <View style={styles.item}>
+                <Image source={{ uri: p.image }} style={styles.preview} />
+                <Text style={styles.itemText}>{p.name}</Text>
+                <Ionicons name="chevron-forward" size={24} />
+              </View>
+            </TouchableOpacity>
+          </Link>
+        ))}
     </ScrollView>
   );
 };
