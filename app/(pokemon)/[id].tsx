@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
@@ -12,13 +13,22 @@ const Page = () => {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const navigation = useNavigation();
 
+  const pokemonQuery = useQuery({
+    queryKey: ['pokemon', id],
+    queryFn: () => getPokemonDetail(id!),
+  });
+
+  useEffect(() => {
+    if (pokemonQuery.isSuccess && pokemonQuery.data) {
+      const title =
+        pokemonQuery.data.name.charAt(0).toUpperCase() +
+        pokemonQuery.data.name.slice(1);
+      navigation.setOptions({ title });
+    }
+  }, [pokemonQuery.data, pokemonQuery.isSuccess, navigation]);
+
   useEffect(() => {
     const load = async () => {
-      const details = await getPokemonDetail(id!);
-      setDetails(details);
-      navigation.setOptions({
-        title: details.name.charAt(0).toUpperCase() + details.name.slice(1),
-      });
       const isFavorite = await AsyncStorage.getItem(`favorite-${id}`);
       setIsFavorite(isFavorite === 'true');
     };

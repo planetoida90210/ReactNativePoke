@@ -14,8 +14,6 @@ import { Pokemon, getPokemon } from '@/api/pokeapi';
 import { Ionicons } from '@expo/vector-icons';
 
 const Page = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-
   const pokemonQuery = useQuery({
     queryKey: ['pokemon'],
     queryFn: getPokemon,
