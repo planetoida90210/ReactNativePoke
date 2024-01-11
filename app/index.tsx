@@ -17,6 +17,7 @@ const Page = () => {
   const pokemonQuery = useQuery({
     queryKey: ['pokemon'],
     queryFn: getPokemon,
+    refetchOnMount: false,
   });
 
   return (

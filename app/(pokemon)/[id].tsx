@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
@@ -8,16 +8,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pokemon, getPokemonDetail } from '@/api/pokeapi';
 
 const Page = () => {
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [details, setDetails] = useState<Pokemon>();
+
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const navigation = useNavigation();
 
   const pokemonQuery = useQuery({
     queryKey: ['pokemon', id],
     queryFn: () => getPokemonDetail(id!),
+    refetchOnMount: false,
+    placeholderData: () => {
+      return queryClient.getQueryData(['pokemon', id]);
+    },
   });
-
   useEffect(() => {
     if (pokemonQuery.isSuccess && pokemonQuery.data) {
       const title =
@@ -59,20 +63,20 @@ const Page = () => {
 
   return (
     <View style={{ padding: 10 }}>
-      {details && (
+      {pokemonQuery.data && (
         <>
           <View style={[styles.card, { alignItems: 'center' }]}>
             <Image
-              source={{ uri: details.sprites.front_default }}
+              source={{ uri: pokemonQuery.data.sprites.front_default }}
               style={styles.preview}
             />
             <Text style={styles.name}>
-              #{details.id} {details.name}
+              #{pokemonQuery.data.id} {pokemonQuery.data.name}
             </Text>
           </View>
           <View style={styles.card}>
             <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Stats:</Text>
-            {details.stats.map((item: any) => (
+            {pokemonQuery.data.stats.map((item: any) => (
               <Text key={item.stat.name}>
                 {item.stat.name} : {item.base_stat}
               </Text>
