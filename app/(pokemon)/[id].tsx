@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Pokemon, getPokemonDetail } from '@/api/pokeapi';
+import { storage } from '@/api/mmkv';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FlipInEasyX,
+} from 'react-native-reanimated';
 
 const Page = () => {
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [isFavorite, setIsFavorite] = useState<boolean>(false);
+  const [isFavorite, setIsFavorite] = useState<boolean>(
+    storage.getString(`favorite-${id}`) === 'true'
+  );
+
   const navigation = useNavigation();
 
   const pokemonQuery = useQuery({
@@ -32,14 +40,6 @@ const Page = () => {
   }, [pokemonQuery.data, pokemonQuery.isSuccess, navigation]);
 
   useEffect(() => {
-    const load = async () => {
-      const isFavorite = await AsyncStorage.getItem(`favorite-${id}`);
-      setIsFavorite(isFavorite === 'true');
-    };
-    load();
-  }, [id]);
-
-  useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <Text onPress={toggleFavorite}>
@@ -54,34 +54,39 @@ const Page = () => {
   }, [isFavorite]);
 
   const toggleFavorite = async () => {
-    await AsyncStorage.setItem(
-      `favorite-${id}`,
-      !isFavorite ? 'true' : 'false'
-    );
-    setIsFavorite(!isFavorite);
+    const newFavoriteStatus = !isFavorite;
+    storage.set(`favorite-${id}`, newFavoriteStatus ? 'true' : 'false');
+    setIsFavorite(newFavoriteStatus);
   };
 
   return (
     <View style={{ padding: 10 }}>
       {pokemonQuery.data && (
         <>
-          <View style={[styles.card, { alignItems: 'center' }]}>
+          <Animated.View
+            entering={FadeIn.delay(200)}
+            style={[styles.card, { alignItems: 'center' }]}
+          >
             <Image
               source={{ uri: pokemonQuery.data.sprites.front_default }}
               style={styles.preview}
             />
-            <Text style={styles.name}>
+            <Animated.Text
+              entering={FlipInEasyX.delay(300)}
+              style={styles.name}
+            >
               #{pokemonQuery.data.id} {pokemonQuery.data.name}
-            </Text>
-          </View>
-          <View style={styles.card}>
+            </Animated.Text>
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.delay(500)} style={styles.card}>
             <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Stats:</Text>
             {pokemonQuery.data.stats.map((item: any) => (
               <Text key={item.stat.name}>
                 {item.stat.name} : {item.base_stat}
               </Text>
             ))}
-          </View>
+          </Animated.View>
         </>
       )}
     </View>
