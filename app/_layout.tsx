@@ -1,6 +1,8 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const queryClient = new QueryClient();
 
@@ -14,8 +16,24 @@ const _layout = () => {
           headerTitleStyle: { fontWeight: 'bold' },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'Pokedex' }} />
+        <Stack.Screen
+          name="index"
+          options={{
+            title: 'Pokedex',
+            headerRight: () => (
+              <Link href="/favorites" asChild>
+                <TouchableOpacity>
+                  <Ionicons name="heart-circle" size={26} color={'#fff'} />
+                </TouchableOpacity>
+              </Link>
+            ),
+          }}
+        />
         <Stack.Screen name="(pokemon)/[id]" options={{ title: '' }} />
+        <Stack.Screen
+          name="favorites"
+          options={{ title: 'Favorites', presentation: 'modal' }}
+        />
       </Stack>
     </QueryClientProvider>
   );
